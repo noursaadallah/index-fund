@@ -18,26 +18,26 @@ T = len(prices)
 assets = prices.columns
 # N = number of assets
 N = len(assets)
-# r(i,t) = interest of asset i at date t
-interests = pd.DataFrame(data = [] )
+# r(i,t) = return of asset i at date t
+returns = pd.DataFrame(data = [] )
 for s in assets:
     for t in range(1,T):
-        interests.at[t,s] = (prices.at[t,s] - prices.at[t-1,s]) / prices.at[t-1,s]
+        returns.at[t,s] = (prices.at[t,s] - prices.at[t-1,s]) / prices.at[t-1,s]
 
-# r_a(i) = arithmetic mean of interests of asset i
-#r_a = interests.mean(0)
+# r_a(i) = arithmetic mean of returns of asset i
+#r_a = returns.mean(0)
 
-# variance of interests
-#r_var = interests.var(0)
+# variance of returns
+#r_var = returns.var(0)
 
 ### Q = covariance matrix
-Q = interests.cov()
+Q = returns.cov()
 
 ### Correlation matrix using Pearson distance : ro_i_j = cov(i,j) / sigma_i * sigma_j
-rho = interests.corr(method='pearson')
+rho = returns.corr(method='pearson')
 
 ############################################################################################################################
-##########################################  Implementing the ILP model  ########################################################
+##########################################  Implementing the ILP model  ####################################################
 ############################################################################################################################
 
 # parameter @q : number of assets to take
