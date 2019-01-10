@@ -31,7 +31,7 @@ for s in assets:
 #r_var = returns.var(0)
 
 ### Q = covariance matrix
-Q = returns.cov()
+#Q = returns.cov()
 
 ### Correlation matrix using Pearson distance : ro_i_j = cov(i,j) / sigma_i * sigma_j
 rho = returns.corr(method='pearson')
@@ -40,7 +40,7 @@ rho = returns.corr(method='pearson')
 ##########################################  Implementing the ILP model  ####################################################
 ############################################################################################################################
 
-# parameter @q : number of assets to take
+# parameter @q : number of assets to include in the index fund
 q = 10
 
 # Objective function : MAX sum_i_j rho_i_j * x_i_j   | i=1..n ; j=1..n
@@ -118,4 +118,11 @@ print "Objective Solution value"
 print _prob.solution.get_objective_value()
 
 print "Parameters values"
-print _prob.solution.get_values()
+values = _prob.solution.get_values()
+print values
+
+y = values[-N:]
+
+for i in range(N):
+    if y[i] == 1.0:
+        print "asset", assets[i] , "is in the portfolio"
