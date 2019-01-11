@@ -1,12 +1,13 @@
 import pandas as pd
 import cplex
 import numpy as np
+import matplotlib.pyplot as plt
 
 # flatten a list of lists (depth = 2)
 flatten = lambda l: [item for sublist in l for item in sublist]
 
 # load data
-xlsx = pd.ExcelFile('./data_if_18/CAC40.xlsx')
+xlsx = pd.ExcelFile('./data_if_18/dowjones.xlsx')
 
 # parse the required sheet
 data = xlsx.parse(0)
@@ -170,3 +171,35 @@ for j in range(N):
 sum_fund = sum(wj)
 for i in range(N):
     wj[i] = wj[i] / sum_fund
+
+###############################################################################################################################
+############################################ portfolio and market performance comparison ######################################
+###############################################################################################################################
+
+# read dow jones market performance csv
+_csv = pd.read_csv('./data_if_18/dowjones_average.csv')
+# take the close column which the closing price of the market
+market_prices = _csv['Close']
+market_returns = []
+for i in range(1,t):
+    market_returns.append( market_prices[i]/market_prices[i-1] -1  )
+
+returns = returns.values
+index_fund_returns = []
+for i in range(0, t-1):
+    index_fund_return = 0
+    for x in range(N):
+        index_fund_return += wj[x] * returns[i][x]
+    index_fund_returns.append(index_fund_return)
+
+###################################################
+# compare index_fund_returns and market_returns
+for i in range(100,2101 , 100):
+    plt.plot(index_fund_returns[0:i] , 'r' , label='index fund performance')
+    plt.plot(market_returns[0:i] , 'b' , label='market performance')
+    plt.title('index fund vs market performances')
+    plt.legend()
+    png_title = './figures/comparison_'+str(i)+'_dates'
+    plt.savefig(png_title)
+    plt.close()
+
