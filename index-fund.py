@@ -1,5 +1,6 @@
 import pandas as pd
 import cplex
+import numpy as np
 
 # flatten a list of lists (depth = 2)
 flatten = lambda l: [item for sublist in l for item in sublist]
@@ -96,7 +97,7 @@ _prob.objective.set_sense(_prob.objective.sense.maximize)
 # PS: flatten matrices before adding them
 # PS: keep same order : flat(x_i_j) then y_j
 _prob.variables.add(
-    obj= rho.values.flatten().tolist() + [0]*N , # y_j are not in the objective function hence 0
+    obj= rho.values.flatten().tolist() + [0]*N , # y_j are not in the objective function hence their coeff is 0
     lb= flatten(lb_x) + lb_y,
     ub= flatten(ub_x) + ub_y,
     types = [_prob.variables.type.integer] * (N*N + N),
@@ -123,6 +124,49 @@ print values
 
 y = values[-N:]
 
+index = []
 for i in range(N):
     if y[i] == 1.0:
+        index.append(i)
         print "asset", assets[i] , "is in the portfolio"
+
+###############################################################################################################################
+###################################################### compute weights in the index fund ######################################
+###############################################################################################################################
+
+# TODO: CAC40 => cap-weighted
+# TODO: Dow-Jones => price-weighted
+
+## w_j = sum_over_i (V_i * x_i_j)
+# Dow-Jones => price weighted => V_i =  price_i / sum_i prices_i
+
+# x_i_j values of the solver
+x_values = values[0: N*N]
+
+# compute market weight at a given date: t<= T
+t = T-1
+
+last_prices = prices.iloc[t].values
+sum_prices = sum(last_prices)
+market_weights = []
+for p in last_prices:
+    market_weights.append(p / sum_prices)
+
+# compute index weight
+# list x_i_j to matrix
+shape = (N, N)
+x_i_j = np.array( values[0:N*N] )
+x_i_j = x_i_j.reshape(shape)
+
+# wj is the total market value of the stocks represented by stock j in the fund
+wj = []
+for j in range(N):
+    _wj = 0
+    for i in range(N):
+        _wj+= market_weights[i] * x_i_j[i][j]
+    wj.append(_wj)
+
+## adjust the index-fund weights so that the total equals 1
+sum_fund = sum(wj)
+for i in range(N):
+    wj[i] = wj[i] / sum_fund
